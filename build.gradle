@@ -18,22 +18,14 @@ version = properties["pluginVersion"]
 
 compileKotlin {
     // Dynamic JVM target based on engine version for OpenSearch 3.x compatibility
-    val engineVersion = project.findProperty("engineVersion") as String? ?: "os:2.18.0"
-    val jvmTarget = if (engineVersion.contains("os:3.")) {
-        JvmTarget.JVM_21  // OpenSearch 3.x requires JDK21
-    } else {
-        JvmTarget.JVM_11  // OpenSearch 2.x and ElasticSearch use JDK11
-    }
+    def engineVersion = project.findProperty("engineVersion") ?: "os:2.18.0"
+    def jvmTarget = engineVersion.contains("os:3.") ? JvmTarget.JVM_21 : JvmTarget.JVM_11
     compilerOptions.jvmTarget.set(jvmTarget)
 }
 
 compileTestKotlin {
-    val engineVersion = project.findProperty("engineVersion") as String? ?: "os:2.18.0"
-    val jvmTarget = if (engineVersion.contains("os:3.")) {
-        JvmTarget.JVM_21
-    } else {
-        JvmTarget.JVM_11
-    }
+    def engineVersion = project.findProperty("engineVersion") ?: "os:2.18.0"
+    def jvmTarget = engineVersion.contains("os:3.") ? JvmTarget.JVM_21 : JvmTarget.JVM_11
     compilerOptions.jvmTarget.set(jvmTarget)
 }
 
