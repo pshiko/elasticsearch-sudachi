@@ -51,6 +51,8 @@ enum OsSupport implements EngineSupport {
     Os20("os-2.00"),
     Os27("os-2.07"),
     Os210("os-2.10"),
+    Os30("os-3.00"),    // OpenSearch 3.0+ (Lucene 10, JDK21)
+    Os31("os-3.01"),    // OpenSearch 3.1+ (Additional changes)
 
     String tag
 
@@ -64,8 +66,12 @@ enum OsSupport implements EngineSupport {
             return Os20
         } else if (version.ge(2, 7) && version.lt(2, 10)) {
             return Os27
-        } else if (version.ge(2, 10)) {
+        } else if (version.ge(2, 10) && version.lt(3, 0)) {
             return Os210
+        } else if (version.ge(3, 0) && version.lt(3, 1)) {
+            return Os30
+        } else if (version.ge(3, 1)) {
+            return Os31
         }
         throw new Exception("unsupported version")
     }

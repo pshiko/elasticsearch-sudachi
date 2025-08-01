@@ -17,11 +17,24 @@ archivesBaseName = 'analysis-sudachi'
 version = properties["pluginVersion"]
 
 compileKotlin {
-    compilerOptions.jvmTarget.set(JvmTarget.JVM_11)
+    // Dynamic JVM target based on engine version for OpenSearch 3.x compatibility
+    val engineVersion = project.findProperty("engineVersion") as String? ?: "os:2.18.0"
+    val jvmTarget = if (engineVersion.contains("os:3.")) {
+        JvmTarget.JVM_21  // OpenSearch 3.x requires JDK21
+    } else {
+        JvmTarget.JVM_11  // OpenSearch 2.x and ElasticSearch use JDK11
+    }
+    compilerOptions.jvmTarget.set(jvmTarget)
 }
 
 compileTestKotlin {
-    compilerOptions.jvmTarget.set(JvmTarget.JVM_11)
+    val engineVersion = project.findProperty("engineVersion") as String? ?: "os:2.18.0"
+    val jvmTarget = if (engineVersion.contains("os:3.")) {
+        JvmTarget.JVM_21
+    } else {
+        JvmTarget.JVM_11
+    }
+    compilerOptions.jvmTarget.set(jvmTarget)
 }
 
 configurations {
