@@ -1,0 +1,41 @@
+# JVM Options for OpenSearch 3.1.0 with JDK21
+
+# Heap size - adjust as needed
+-Xms1g
+-Xmx1g
+
+# JDK21 specific options
+--enable-preview
+
+# GC Settings
+-XX:+UseG1GC
+-XX:G1HeapRegionSize=32m
+-XX:+UseG1MixedGCCountTarget=8
+-XX:+DisableExplicitGC
+
+# JVM Settings for better performance
+-server
+-Djava.awt.headless=true
+-Dfile.encoding=UTF-8
+-Djna.nosys=true
+-Djdk.io.permissionsUseCanonicalPath=true
+-Dio.netty.noUnsafe=true
+-Dio.netty.noKeySetOptimization=true
+-Dio.netty.recycler.maxCapacityPerThread=0
+-Dlog4j.shutdownHookEnabled=false
+-Dlog4j2.disable.jmx=true
+
+# JDK21 compatibility
+-Djava.security.policy=all.policy
+
+# OpenSearch specific settings
+-Des.networkaddress.cache.ttl=60
+-Des.networkaddress.cache.negative.ttl=10
+-Djava.io.tmpdir=${ES_TMPDIR}
+
+# Lucene settings
+-Dorg.apache.lucene.store.MMapDirectory.enableMemorySegments=false
+
+# Memory settings
+-XX:+HeapDumpOnOutOfMemoryError
+-XX:+ExitOnOutOfMemoryError

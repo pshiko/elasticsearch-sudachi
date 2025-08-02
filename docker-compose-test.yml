@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  opensearch:
+    image: opensearchproject/opensearch:2.18.0
+    container_name: opensearch-test
+    environment:
+      - cluster.name=sudachi-test
+      - node.name=test-node
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=AdminPassword123!"
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    volumes:
+      - ./test-scripts/opensearch.yml:/usr/share/opensearch/config/opensearch.yml:ro
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  test-runner:
+    image: python:3.11-slim
+    container_name: test-runner
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    volumes:
+      - ./test-scripts:/app/test-scripts
+      - ./build:/app/build
+    working_dir: /app
+    networks:
+      - test-network
+    environment:
+      - ES_KIND=opensearch
+      - ES_VERSION=2.18.0
+      - PLUGIN_VERSION=3.3.1-SNAPSHOT
+    command: >
+      bash -c "
+        apt-get update && apt-get install -y curl wget unzip &&
+        pip install urllib3 &&
+        
+        echo 'Installing plugin to OpenSearch...' &&
+        
+        # Wait for OpenSearch to be ready
+        for i in {1..30}; do
+          if curl -s http://opensearch:9200/_cluster/health; then
+            break
+          fi
+          echo 'Waiting for OpenSearch...'
+          sleep 5
+        done &&
+        
+        # Install plugin
+        curl -X POST http://opensearch:9200/_cluster/settings -H 'Content-Type: application/json' -d '{\"transient\":{\"cluster.routing.allocation.enable\":\"none\"}}' &&
+        
+        # Copy and install plugin
+        wget -O /tmp/plugin.zip file:///app/build/distributions/opensearch-2.18.0-analysis-sudachi-3.3.1-SNAPSHOT.zip 2>/dev/null || cp /app/build/distributions/opensearch-2.18.0-analysis-sudachi-3.3.1-SNAPSHOT.zip /tmp/plugin.zip &&
+        curl -X PUT http://opensearch:9200/_cluster/settings -H 'Content-Type: application/json' -d '{\"transient\":{\"cluster.routing.allocation.enable\":\"all\"}}' &&
+        
+        echo 'Running integration tests...' &&
+        cd /app/test-scripts &&
+        python3 01-integration-test.py --host http://opensearch --port 9200
+      "
+
+networks:
+  test-network:
+    driver: bridge

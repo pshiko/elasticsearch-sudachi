@@ -1,0 +1,28 @@
+cluster.name: opensearch-sudachi-cluster
+node.name: opensearch-sudachi-node
+
+# Network settings
+network.host: 0.0.0.0
+http.port: 9200
+transport.tcp.port: 9300
+
+# Discovery settings for single-node cluster
+discovery.type: single-node
+
+# Security settings (disabled for development)
+plugins.security.disabled: true
+
+# Performance settings
+bootstrap.memory_lock: false
+
+# Logging
+logger.level: INFO
+
+# Path settings
+path.data: /usr/share/opensearch/data
+path.logs: /usr/share/opensearch/logs
+
+# Analysis settings for Sudachi
+index.analysis.analyzer.default.type: sudachi
+index.analysis.analyzer.default.tokenizer: sudachi_tokenizer
+index.analysis.analyzer.default.filter: [sudachi_baseform, sudachi_part_of_speech, sudachi_ja_stop]

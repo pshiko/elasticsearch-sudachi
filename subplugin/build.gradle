@@ -8,6 +8,18 @@ plugins {
 group = 'com.worksap.nlp'
 version = properties["pluginVersion"]
 
+// Java compatibility based on engine version
+java {
+    def engineVersion = project.findProperty("engineVersion") ?: "os:2.18.0"
+    if (engineVersion.contains("os:3.")) {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    } else {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+}
+
 dependencies {
     compileOnly(project(':spi'))
 }

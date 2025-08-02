@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  # Build service for plugin compilation
+  builder:
+    build:
+      context: .
+      dockerfile: Dockerfile.build
+      args:
+        ENGINE_VERSION: ${ENGINE_VERSION:-os:2.18.0}
+    volumes:
+      - build-output:/output
+    command: ["./list-artifacts.sh"]
+
+  # Test runner service
+  test-runner:
+    image: python:3.11-slim
+    container_name: sudachi-test-runner
+    working_dir: /app
+    volumes:
+      - ./test-scripts:/app/test-scripts
+      - build-output:/app/build
+    networks:
+      - opensearch-net
+    depends_on:
+      - builder
+    command: >
+      bash -c "
+        apt-get update && apt-get install -y curl wget unzip &&
+        pip install urllib3 &&
+        cd test-scripts &&
+        python3 01-integration-test.py --host http://opensearch --port 9200
+      "
+  opensearch:
+    image: opensearchproject/opensearch:2.18.0
+    container_name: opensearch-sudachi-test
+    environment:
+      - cluster.name=sudachi-test
+      - node.name=test-node
+      - discovery.type=single-node
+      - discovery.seed_hosts=opensearch
+      - plugins.security.disabled=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=AdminPassword123!"
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    volumes:
+      - ./test-scripts/opensearch.yml:/usr/share/opensearch/config/opensearch.yml:ro
+      - opensearch-data:/usr/share/opensearch/data
+      - ./build/plugins:/usr/share/opensearch/plugins/analysis-sudachi:ro
+      - ./build/config:/usr/share/opensearch/config/sudachi:ro
+    networks:
+      - opensearch-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.2
+    container_name: elasticsearch-sudachi-test
+    environment:
+      - cluster.name=sudachi-test
+      - node.name=test-node
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - ./test-scripts/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - elasticsearch-data:/usr/share/elasticsearch/data
+      - ./build/plugins:/usr/share/elasticsearch/plugins/analysis-sudachi:ro
+      - ./build/config:/usr/share/elasticsearch/config/sudachi:ro
+    networks:
+      - opensearch-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+volumes:
+  opensearch-data:
+  elasticsearch-data:
+  build-output:
+
+networks:
+  opensearch-net:
+    driver: bridge

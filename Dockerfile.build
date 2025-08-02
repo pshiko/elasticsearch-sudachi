@@ -1,0 +1,43 @@
+FROM gradle:8.5-jdk11 AS builder
+
+WORKDIR /app
+
+# Copy gradle files
+COPY gradle/ gradle/
+COPY gradlew gradlew.bat gradle.properties settings.gradle ./
+COPY buildSrc/ buildSrc/
+
+# Copy git and formatter directories for spotless
+COPY .git/ .git/
+COPY .formatter/ .formatter/
+
+# Copy source code
+COPY src/ src/
+COPY spi/ spi/
+COPY integration/ integration/
+COPY subplugin/ subplugin/
+COPY testlib/ testlib/
+COPY build.gradle ./
+
+# Set environment variables
+ARG ENGINE_VERSION=os:2.18.0
+ENV ENGINE_VERSION=${ENGINE_VERSION}
+
+# Build the plugin (skip tests for faster build)
+RUN ./gradlew -PengineVersion=${ENGINE_VERSION} build -x test --no-daemon
+
+# Create final image with built artifacts
+FROM alpine:latest AS final
+
+WORKDIR /output
+
+# Copy built artifacts
+COPY --from=builder /app/build/distributions/ ./distributions/
+COPY --from=builder /app/integration/build/distributions/ ./integration/
+COPY --from=builder /app/build/package/ ./package/
+
+# Create a simple script to list artifacts
+RUN echo '#!/bin/sh' > list-artifacts.sh && \
+    echo 'echo "=== Built Artifacts ==="' >> list-artifacts.sh && \
+    echo 'find /output -name "*.zip" -type f' >> list-artifacts.sh && \
+    chmod +x list-artifacts.sh

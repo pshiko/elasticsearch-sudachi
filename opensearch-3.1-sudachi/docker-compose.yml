@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  opensearch-sudachi:
+    build:
+      context: ..
+      dockerfile: opensearch-3.1-sudachi/Dockerfile
+    container_name: opensearch-3.1-sudachi
+    environment:
+      - cluster.name=opensearch-sudachi-cluster
+      - node.name=opensearch-sudachi-node
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=AdminPassword123!"
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+      - ./config/opensearch.yml:/usr/share/opensearch/config/opensearch.yml:ro
+      - ./config/jvm.options:/usr/share/opensearch/config/jvm.options:ro
+    networks:
+      - opensearch-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+volumes:
+  opensearch-data:
+    driver: local
+
+networks:
+  opensearch-network:
+    driver: bridge

@@ -1,0 +1,101 @@
+name: Build and test OpenSearch 3.x
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [ develop ]
+
+jobs:
+  build-opensearch-3x:
+    name: Build OpenSearch 3.x
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os-version:
+          - 'os:3.1.0'
+          - 'os:3.0.0'
+    env:
+      mainJob: ${{ matrix.os-version == 'os:3.1.0' }}
+      sudachiVersion: 20241021
+      sudachiKind: core
+    continue-on-error: true
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+    
+    # OpenSearch 3.x requires JDK21
+    - name: Setup JDK 21 for OpenSearch 3.x
+      uses: actions/setup-java@v4
+      with:
+        java-version: 21
+        distribution: 'temurin'
+    
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+    
+    - name: Extract version and set to github env
+      run: ./gradlew -PengineVersion=${{ matrix.os-version }} printVersionForGithubActions
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build with JDK21
+      run: ./gradlew -PengineVersion=${{ matrix.os-version }} --info clean build koverXmlReport
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Prepare artifact for sonar analysis
+      if: env.mainJob == 'true'
+      run: |
+        find -iname build -type d -exec tar -cf sonar-opensearch3x.tar {} \+
+        echo ${{ github.event.number }} >> PR_EVENT_OS3X.txt
+        echo ${{ github.event.pull_request.head.ref }} >> PR_EVENT_OS3X.txt
+        echo ${{ github.event.pull_request.base.ref }} >> PR_EVENT_OS3X.txt
+    
+    - name: Upload artifact for sonar analysis
+      if: env.mainJob == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: sonar-artifact-opensearch3x
+        path: |
+          sonar-opensearch3x.tar
+          PR_EVENT_OS3X.txt
+
+    # Use Docker for Integration Test with OpenSearch 3.x
+    - name: Run OpenSearch 3.x Integration Test via Docker
+      env:
+        OS_VERSION: ${{ matrix.os-version }}
+        PLUGIN_VERSION: ${{ env.PROJ_VERSION }}
+      run: |
+        # Build plugin using JDK21 Docker
+        docker build -f Dockerfile.build-jdk21 --build-arg ENGINE_VERSION=${{ matrix.os-version }} -t sudachi-builder-jdk21 .
+        # Extract built plugin
+        docker run --rm -v $(pwd):/host_workspace sudachi-builder-jdk21 sh -c "mkdir -p /host_workspace/build-jdk21 && cp -r /output/* /host_workspace/build-jdk21/"
+        # Start OpenSearch 3.x for testing
+        docker compose -f docker-compose-opensearch31.yml up -d
+        # Wait for OpenSearch to be ready
+        sleep 60
+        # Test basic functionality
+        curl -X GET "http://localhost:9201/_analyze" -H "Content-Type: application/json" -d '{"analyzer": "standard", "text": "test"}' | jq '.'
+        # Clean up
+        docker compose -f docker-compose-opensearch31.yml down
+
+    - uses: actions/upload-artifact@v4
+      name: Upload reports when failed
+      if: failure()
+      with:
+        name: failure-reports-opensearch3x-${{ env.ENGINE_KIND }}-${{ env.ENGINE_VERSION }}
+        path: |
+          build/reports
+          build-jdk21/distributions
+
+    - uses: actions/upload-artifact@v4
+      name: Upload OpenSearch 3.x built packages
+      if: success()
+      with:
+        name: build-artifacts-opensearch3x-${{ env.ENGINE_KIND }}-${{ env.ENGINE_VERSION }}
+        path: |
+          build-jdk21/distributions/*.zip

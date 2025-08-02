@@ -1,0 +1,16 @@
+# Optional: Explicit Java compatibility settings for Gradle 8.5
+# Add after line 17 in build.gradle if needed:
+
+java {
+    def engineVersion = project.findProperty("engineVersion") ?: "os:2.18.0"
+    if (engineVersion.contains("os:3.")) {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    } else {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+}
+
+# This is optional and may not be necessary as Kotlin plugin
+# handles compatibility through JvmTarget settings
