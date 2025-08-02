@@ -16,16 +16,29 @@ group = 'com.worksap.nlp'
 archivesBaseName = 'analysis-sudachi'
 version = properties["pluginVersion"]
 
+// Java compatibility based on engine version
+java {
+    def engineVersion = project.findProperty("engineVersion") ?: "os:2.18.0"
+    if (engineVersion.contains("os:3.")) {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    } else {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+}
+
 compileKotlin {
     // Dynamic JVM target based on engine version for OpenSearch 3.x compatibility
     def engineVersion = project.findProperty("engineVersion") ?: "os:2.18.0"
-    def jvmTarget = engineVersion.contains("os:3.") ? JvmTarget.JVM_21 : JvmTarget.JVM_11
+    // Use string values for JVM targets to support JDK 21
+    def jvmTarget = engineVersion.contains("os:3.") ? "21" : "11"
     compilerOptions.jvmTarget.set(jvmTarget)
 }
 
 compileTestKotlin {
     def engineVersion = project.findProperty("engineVersion") ?: "os:2.18.0"
-    def jvmTarget = engineVersion.contains("os:3.") ? JvmTarget.JVM_21 : JvmTarget.JVM_11
+    def jvmTarget = engineVersion.contains("os:3.") ? "21" : "11"
     compilerOptions.jvmTarget.set(jvmTarget)
 }
 
