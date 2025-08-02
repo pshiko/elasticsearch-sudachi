@@ -37,18 +37,21 @@ spotless {
     }
 }
 
-// Java compatibility based on engine version
 java {
-    def engineVersion = project.findProperty("engineVersion") ?: "os:2.18.0"
-    if (engineVersion.contains("os:3.")) {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    } else {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
     withJavadocJar()
     withSourcesJar()
+}
+
+// Java compatibility based on engine version - set after project evaluation
+afterEvaluate {
+    def engineVersion = project.findProperty("engineVersion") ?: "os:2.18.0"
+    if (engineVersion.contains("os:3.")) {
+        java.sourceCompatibility = JavaVersion.VERSION_21
+        java.targetCompatibility = JavaVersion.VERSION_21
+    } else {
+        java.sourceCompatibility = JavaVersion.VERSION_11
+        java.targetCompatibility = JavaVersion.VERSION_11
+    }
 }
 
 tasks.withType(org.gradle.jvm.tasks.Jar.class).configureEach {
