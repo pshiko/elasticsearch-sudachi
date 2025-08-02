@@ -31,15 +31,28 @@ java {
 compileKotlin {
     // Dynamic JVM target based on engine version for OpenSearch 3.x compatibility
     def engineVersion = project.findProperty("engineVersion") ?: "os:2.18.0"
-    // Use string values for JVM targets to support JDK 21
-    def jvmTarget = engineVersion.contains("os:3.") ? "21" : "11"
-    compilerOptions.jvmTarget.set(jvmTarget)
+    if (engineVersion.contains("os:3.")) {
+        kotlinOptions {
+            jvmTarget = "21"
+        }
+    } else {
+        kotlinOptions {
+            jvmTarget = "11"
+        }
+    }
 }
 
 compileTestKotlin {
     def engineVersion = project.findProperty("engineVersion") ?: "os:2.18.0"
-    def jvmTarget = engineVersion.contains("os:3.") ? "21" : "11"
-    compilerOptions.jvmTarget.set(jvmTarget)
+    if (engineVersion.contains("os:3.")) {
+        kotlinOptions {
+            jvmTarget = "21"
+        }
+    } else {
+        kotlinOptions {
+            jvmTarget = "11"
+        }
+    }
 }
 
 configurations {
