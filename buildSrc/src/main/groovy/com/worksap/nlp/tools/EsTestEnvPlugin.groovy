@@ -99,6 +99,15 @@ class StringProvider implements Provider<String>, Serializable {
     }
 
     @Override
+    Provider<String> filter(org.gradle.api.specs.Spec<? super String> spec) {
+        if (spec.isSatisfiedBy(value)) {
+            return this
+        } else {
+            return new StringProvider(value: null)
+        }
+    }
+
+    @Override
     def <U, R> Provider<R> zip(Provider<U> right, BiFunction<? super String, ? super U, ? extends R> combiner) {
         throw new IllegalStateException("not implemented")
     }
