@@ -2,8 +2,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id 'java-library'
-    id 'org.jetbrains.kotlin.jvm' version '1.8.0'
-    id "org.jetbrains.kotlin.plugin.serialization" version "1.8.0"
+    id 'org.jetbrains.kotlin.jvm' version '1.9.0'
+    id "org.jetbrains.kotlin.plugin.serialization" version "1.9.0"
     id 'com.diffplug.spotless' version '6.16.0'
     id 'org.sonarqube' version '4.0.0.2929'
     id("org.jetbrains.kotlinx.kover") version "0.7.0"
@@ -32,26 +32,18 @@ compileKotlin {
     // Dynamic JVM target based on engine version for OpenSearch 3.x compatibility
     def engineVersion = project.findProperty("engineVersion") ?: "os:2.18.0"
     if (engineVersion.contains("os:3.")) {
-        kotlinOptions {
-            jvmTarget = "21"
-        }
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
     } else {
-        kotlinOptions {
-            jvmTarget = "11"
-        }
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_11)
     }
 }
 
 compileTestKotlin {
     def engineVersion = project.findProperty("engineVersion") ?: "os:2.18.0"
     if (engineVersion.contains("os:3.")) {
-        kotlinOptions {
-            jvmTarget = "21"
-        }
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
     } else {
-        kotlinOptions {
-            jvmTarget = "11"
-        }
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_11)
     }
 }
 
