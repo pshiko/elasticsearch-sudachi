@@ -95,6 +95,7 @@ class StringProvider implements Provider<String>, Serializable {
 
     @Override
     Provider<String> forUseAtConfigurationTime() {
+        // Deprecated in Gradle 7.4, no longer needed in Gradle 8.x
         return this
     }
 
@@ -103,6 +104,14 @@ class StringProvider implements Provider<String>, Serializable {
         throw new IllegalStateException("not implemented")
     }
 
+    @Override
+    Provider<String> filter(org.gradle.api.specs.Spec<? super String> spec) {
+        if (spec.isSatisfiedBy(value)) {
+            return this
+        } else {
+            return new StringProvider(value: null)
+        }
+    }
 
     @Override
     String toString() {
@@ -125,7 +134,7 @@ class EsTestEnvPlugin implements Plugin<Project> {
         target.extensions.add(EsTestEnvExtension.class, "esTestEnv", ext)
         target.tasks.named("test").configure { Test task ->
             Provider<String> envRoot = new StringProvider()
-            Path esHomePath = target.buildDir.toPath().resolve("es-env")
+            Path esHomePath = target.layout.buildDirectory.get().asFile.toPath().resolve("es-env")
             envRoot.setValue(esHomePath.toString())
             task.systemProperty("sudachi.es.root", envRoot)
             task.doFirst {
