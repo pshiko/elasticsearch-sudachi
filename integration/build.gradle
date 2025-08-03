@@ -45,7 +45,7 @@ def compileSystemDictionary = tasks.register("compileTestDictionary", JavaExec) 
     def dictRoot = rootProject.file("src/test/resources/dict").toPath()
     def matrixFile = dictRoot.resolve("matrix.def")
     def dataFile = dictRoot.resolve("lex.csv")
-    def resultFile = buildDir.toPath().resolve("generated/dict/system.dict")
+    def resultFile = layout.buildDirectory.get().asFile.toPath().resolve("generated/dict/system.dict")
     args("-d", "test dictionary", "-m", matrixFile, "-o", resultFile, dataFile)
     inputs.file(matrixFile)
     inputs.file(dataFile)
@@ -56,10 +56,10 @@ def downloadIcuPlugin = tasks.register('downloadIcuPlugin', Download.class) {
     String version = sudachiEs.version()
     if (sudachiEs.isEs()) {
         src("https://artifacts.elastic.co/downloads/elasticsearch-plugins/analysis-icu/analysis-icu-${version}.zip")
-        dest(new File(project.buildDir, "cache/analysis-icu-elasticsearch-${version}.zip"))
+        dest(new File(project.layout.buildDirectory.get().asFile, "cache/analysis-icu-elasticsearch-${version}.zip"))
     } else {
         src("https://artifacts.opensearch.org/releases/plugins/analysis-icu/${version}/analysis-icu-${version}.zip")
-        dest(new File(project.buildDir, "cache/analysis-icu-opensearch-${version}.zip"))
+        dest(new File(project.layout.buildDirectory.get().asFile, "cache/analysis-icu-opensearch-${version}.zip"))
     }
 
     overwrite(false)
