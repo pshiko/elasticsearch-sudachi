@@ -80,6 +80,19 @@ class EsSudachiPlugin implements Plugin<Project> {
         }
 
 
+        // Set Java toolchain before adding dependencies
+        project.java {
+            if (kind.engine == EngineType.OpenSearch && version.ge(3, 0)) {
+                toolchain {
+                    languageVersion = org.gradle.jvm.toolchain.JavaLanguageVersion.of(21)
+                }
+            } else {
+                toolchain {
+                    languageVersion = org.gradle.jvm.toolchain.JavaLanguageVersion.of(11)
+                }
+            }
+        }
+
         project.dependencies {
             if (kind.engine == EngineType.ElasticSearch) {
                 compileOnly("org.elasticsearch:elasticsearch:$verString")
