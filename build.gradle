@@ -17,11 +17,21 @@ archivesBaseName = 'analysis-sudachi'
 version = properties["pluginVersion"]
 
 compileKotlin {
-    compilerOptions.jvmTarget.set(JvmTarget.JVM_11)
+    def esKind = sudachiEs.kind.get()
+    if (esKind.engine.name() == 'OpenSearch' && esKind.parsedVersion().ge(3, 0)) {
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
+    } else {
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_11)
+    }
 }
 
 compileTestKotlin {
-    compilerOptions.jvmTarget.set(JvmTarget.JVM_11)
+    def esKind = sudachiEs.kind.get()
+    if (esKind.engine.name() == 'OpenSearch' && esKind.parsedVersion().ge(3, 0)) {
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
+    } else {
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_11)
+    }
 }
 
 configurations {
