@@ -8,17 +8,6 @@ plugins {
 group = 'com.worksap.nlp'
 version = properties["pluginVersion"]
 
-java {
-    def esKind = sudachiEs.kind.get()
-    if (esKind.engine.name() == 'OpenSearch' && esKind.parsedVersion().ge(3, 0)) {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    } else {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-}
-
 dependencies {
     compileOnly(project(':spi'))
 }
