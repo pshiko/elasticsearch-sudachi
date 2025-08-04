@@ -51,7 +51,9 @@ class EsSudachiPlugin implements Plugin<Project> {
 
         var kind = new ProjectKind(rawVersion as String)
         
-        // Set Java toolchain for all projects  
+        var verString = kind.version
+
+        // Set Java toolchain before any configuration
         def javaVersion = 11
         if (kind.engine == EngineType.OpenSearch && kind.parsedVersion().ge(3, 0)) {
             javaVersion = 21
@@ -68,9 +70,6 @@ class EsSudachiPlugin implements Plugin<Project> {
             sourceCompatibility = JavaVersion.toVersion(javaVersion)
             targetCompatibility = JavaVersion.toVersion(javaVersion)
         }
-        
-        var verString = kind.version
-
 
         var version = kind.supportVersion(verString)
 
