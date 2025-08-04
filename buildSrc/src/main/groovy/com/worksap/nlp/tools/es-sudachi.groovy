@@ -51,19 +51,18 @@ class EsSudachiPlugin implements Plugin<Project> {
         var kind = new ProjectKind(rawVersion as String)
         
         // Set Java toolchain immediately after kind is determined
+        def javaVersion = 11
+        if (kind.engine == EngineType.OpenSearch && kind.parsedVersion().ge(3, 0)) {
+            javaVersion = 21
+        } else if (kind.engine == EngineType.ElasticSearch && kind.parsedVersion().ge(8, 0)) {
+            javaVersion = 17
+        }
+        
+        logger.warn("Setting Java toolchain to version $javaVersion for ${kind.engine.kind} ${kind.version} in project ${project.name}")
+        
         project.java {
-            if (kind.engine == EngineType.OpenSearch && kind.parsedVersion().ge(3, 0)) {
-                toolchain {
-                    languageVersion = org.gradle.jvm.toolchain.JavaLanguageVersion.of(21)
-                }
-            } else if (kind.engine == EngineType.ElasticSearch && kind.parsedVersion().ge(8, 0)) {
-                toolchain {
-                    languageVersion = org.gradle.jvm.toolchain.JavaLanguageVersion.of(17)
-                }
-            } else {
-                toolchain {
-                    languageVersion = org.gradle.jvm.toolchain.JavaLanguageVersion.of(11)
-                }
+            toolchain {
+                languageVersion = org.gradle.jvm.toolchain.JavaLanguageVersion.of(javaVersion)
             }
         }
         var verString = kind.version
