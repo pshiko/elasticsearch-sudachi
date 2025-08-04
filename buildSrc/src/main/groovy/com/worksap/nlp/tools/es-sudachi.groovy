@@ -82,7 +82,7 @@ class EsSudachiPlugin implements Plugin<Project> {
 
         // Set Java toolchain before adding dependencies
         project.java {
-            if (kind.engine == EngineType.OpenSearch && version.ge(3, 0)) {
+            if (kind.engine == EngineType.OpenSearch && kind.parsedVersion().ge(3, 0)) {
                 toolchain {
                     languageVersion = org.gradle.jvm.toolchain.JavaLanguageVersion.of(21)
                 }
