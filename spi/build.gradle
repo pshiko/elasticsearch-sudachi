@@ -38,6 +38,14 @@ spotless {
 }
 
 java {
+    def esKind = sudachiEs.kind.get()
+    if (esKind.engine.name() == 'OpenSearch' && esKind.parsedVersion().ge(3, 0)) {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
     withJavadocJar()
     withSourcesJar()
 }
