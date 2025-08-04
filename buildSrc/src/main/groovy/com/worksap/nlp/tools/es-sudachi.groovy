@@ -48,8 +48,24 @@ class EsSudachiPlugin implements Plugin<Project> {
 
         project.extensions.add("sudachiEs", EsExtension.class)
 
-
         var kind = new ProjectKind(rawVersion as String)
+        
+        // Set Java toolchain immediately after kind is determined
+        project.java {
+            if (kind.engine == EngineType.OpenSearch && kind.parsedVersion().ge(3, 0)) {
+                toolchain {
+                    languageVersion = org.gradle.jvm.toolchain.JavaLanguageVersion.of(21)
+                }
+            } else if (kind.engine == EngineType.ElasticSearch && kind.parsedVersion().ge(8, 0)) {
+                toolchain {
+                    languageVersion = org.gradle.jvm.toolchain.JavaLanguageVersion.of(17)
+                }
+            } else {
+                toolchain {
+                    languageVersion = org.gradle.jvm.toolchain.JavaLanguageVersion.of(11)
+                }
+            }
+        }
         var verString = kind.version
 
 
@@ -77,20 +93,6 @@ class EsSudachiPlugin implements Plugin<Project> {
 
             main.java.srcDirs += tags.collect {"src/main/ext/$it" }
             test.java.srcDirs += tags.collect {"src/test/ext/$it" }
-        }
-
-
-        // Set Java toolchain before adding dependencies
-        project.java {
-            if (kind.engine == EngineType.OpenSearch && kind.parsedVersion().ge(3, 0)) {
-                toolchain {
-                    languageVersion = org.gradle.jvm.toolchain.JavaLanguageVersion.of(21)
-                }
-            } else {
-                toolchain {
-                    languageVersion = org.gradle.jvm.toolchain.JavaLanguageVersion.of(11)
-                }
-            }
         }
 
         project.dependencies {
