@@ -64,6 +64,8 @@ class EsSudachiPlugin implements Plugin<Project> {
             toolchain {
                 languageVersion = org.gradle.jvm.toolchain.JavaLanguageVersion.of(javaVersion)
             }
+            sourceCompatibility = JavaVersion.toVersion(javaVersion)
+            targetCompatibility = JavaVersion.toVersion(javaVersion)
         }
         var verString = kind.version
 
