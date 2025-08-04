@@ -3,6 +3,7 @@ package com.worksap.nlp.tools
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.slf4j.Logger
@@ -69,6 +70,16 @@ class EsSudachiPlugin implements Plugin<Project> {
             }
             sourceCompatibility = JavaVersion.toVersion(javaVersion)
             targetCompatibility = JavaVersion.toVersion(javaVersion)
+        }
+
+        // Set Java compatibility attributes for dependency resolution
+        project.configurations.configureEach { configuration ->
+            configuration.attributes { attributes ->
+                attributes.attribute(
+                    TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
+                    javaVersion as Integer
+                )
+            }
         }
 
         var version = kind.supportVersion(verString)

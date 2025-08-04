@@ -7,16 +7,6 @@ plugins {
     id 'com.worksap.nlp.sudachi.esc'
 }
 
-// Early Java toolchain configuration for OpenSearch 3.x
-if (project.findProperty("engineVersion")?.startsWith("os:3.")) {
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(21)
-        }
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    }
-}
 
 group = 'com.worksap.nlp'
 version = properties["pluginVersion"]
