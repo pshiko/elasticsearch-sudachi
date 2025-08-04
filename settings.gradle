@@ -3,21 +3,3 @@ include 'spi'
 include 'testlib'
 include 'subplugin'
 include 'integration'
-
-// Set Java toolchain for OpenSearch 3.x projects early
-gradle.projectsEvaluated {
-    def engineVersion = gradle.startParameter.projectProperties.get("engineVersion")
-    if (engineVersion?.startsWith("os:3.")) {
-        allprojects {
-            plugins.withType(JavaPlugin) {
-                java {
-                    toolchain {
-                        languageVersion = JavaLanguageVersion.of(21)
-                    }
-                    sourceCompatibility = JavaVersion.VERSION_21
-                    targetCompatibility = JavaVersion.VERSION_21
-                }
-            }
-        }
-    }
-}

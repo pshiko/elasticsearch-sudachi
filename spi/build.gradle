@@ -1,3 +1,15 @@
+// Early Java toolchain configuration for OpenSearch 3.x
+if (project.findProperty("engineVersion")?.startsWith("os:3.")) {
+    apply plugin: 'java'
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+}
+
 plugins {
     id 'java-library'
     id 'com.diffplug.spotless'
