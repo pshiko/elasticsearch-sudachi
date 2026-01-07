@@ -103,6 +103,13 @@ class StringProvider implements Provider<String>, Serializable {
         throw new IllegalStateException("not implemented")
     }
 
+    @Override
+    Provider<String> filter(org.gradle.api.specs.Spec<? super String> spec) {
+        if (value != null && spec.isSatisfiedBy(value)) {
+            return this
+        }
+        return new StringProvider(value: null)
+    }
 
     @Override
     String toString() {
